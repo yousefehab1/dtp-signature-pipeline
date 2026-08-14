@@ -1,0 +1,51 @@
+# Run-level configuration for the dtpsig pipeline.
+# Loaded by dtp_config() and merged with the package defaults in R/config.R.
+# Edit this file to change thresholds/paths for a given run; do not hardcode
+# these values in analysis code.
+
+id_type: ensembl               # "symbol" or "ensembl" -- gene ID namespace used throughout
+score_suffix: "_ssGSEA"
+
+# Landmark / survival cutpoints (months)
+os_cutpoint: 36
+rfs_cutpoint: 36
+
+# Statistical gating thresholds
+min_group_n: 10                # Wilcoxon: minimum per group
+min_km_group_n: 5               # KM: minimum per High/Low group
+min_events: 5                   # KM/Cox: minimum events
+min_cox_n: 10                   # Cox: minimum n
+min_epv: 10                     # adjusted/interaction Cox: min events-per-variable (Peduzzi 1996)
+
+# Cohort / coverage gates
+min_cohort_n: 100               # pan-cancer: min matched patients after RNA-seq join
+min_gene_cov: 70                # min % of a gene set present in the expression matrix
+
+# TCGA conventions
+tumour_codes: ["Primary Tumor"]
+exclude_projects: ["TCGA-LAML", "TCGA-DLBC"]
+
+# FDR grouping -- kept as two deliberately distinct, named tiers (see R/stats.R::apply_fdr).
+# Do not pass an ad-hoc `by=` at a call site; use family = "cohort" or family = "pancan".
+fdr_by_cohort: ["Dataset", "Project", "Test", "Metric"]
+fdr_by_pancan: ["Family", "Test"]
+
+# Clinical source
+cdr_file: "data/TCGA-CDR.csv"
+cdr_rfs_type: "PFI"
+
+# Signature panel (canonical, data-driven -- add/remove a signature by editing these files)
+signature_panel_path: "inst/signatures/panel.csv"
+composite_defs_path: "inst/signatures/composite_defs.csv"
+
+# Confounder / effect-modification analysis (CRC only)
+crc_modifiers: ["CMS", "PDS", "Stage_bin", "MSI_group"]
+
+# Cache
+cache_dir: "cache"
+keep_intermediate: false        # if true, also write per-cohort diagnostic plots to output/<run>/intermediate/
+
+# Legacy data reuse -- warm-through cache so the ~7.6GB of GEO/GDC downloads already
+# present in the old thesis project are not re-fetched. Read-only; never written to.
+legacy_cache_dir: "/Users/elabd/Master's Work/Thesis/cache"
+legacy_gdcdata_dir: "/Users/elabd/Master's Work/Thesis/GDCdata"

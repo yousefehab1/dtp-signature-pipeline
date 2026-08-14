@@ -1,0 +1,12 @@
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+output/
+cache/
+GDCdata/
+renv/library/
+renv/staging/
+.DS_Store
+inst/doc

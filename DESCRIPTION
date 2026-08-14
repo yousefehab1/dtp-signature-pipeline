@@ -1,0 +1,50 @@
+Package: dtpsig
+Title: Drug-Tolerant Persister Signature Scoring and Survival Analysis
+Version: 0.1.0
+Authors@R: person("Yousef", "Elabd", email = "yousefehab1974@gmail.com", role = c("aut", "cre"))
+Description: Scores gene expression signatures (ssGSEA) across CRC and pan-cancer
+    TCGA cohorts, runs survival and differential-expression analyses against a
+    configurable, data-driven gene signature panel, and reports results as
+    publication figures, a single Excel workbook, and an interactive dashboard.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends: R (>= 4.2)
+Imports:
+    dplyr,
+    tidyr,
+    tibble,
+    readr,
+    purrr,
+    stringr,
+    ggplot2,
+    patchwork,
+    survival,
+    survminer,
+    GSVA,
+    GSEABase,
+    limma,
+    clusterProfiler,
+    enrichplot,
+    msigdbr,
+    org.Hs.eg.db,
+    AnnotationDbi,
+    CMScaller,
+    scales,
+    digest,
+    openxlsx,
+    yaml,
+    rlang
+Suggests:
+    PDSclassifier,
+    GEOquery,
+    TCGAbiolinks,
+    SummarizedExperiment,
+    hgu133plus2.db,
+    ROCR,
+    testthat (>= 3.0.0),
+    shiny,
+    bslib,
+    DT
+Config/testthat/edition: 3
