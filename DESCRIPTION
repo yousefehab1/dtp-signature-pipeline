@@ -42,6 +42,7 @@ Suggests:
     SummarizedExperiment,
     hgu133plus2.db,
     ROCR,
+    ragg,
     testthat (>= 3.0.0),
     shiny,
     bslib,
