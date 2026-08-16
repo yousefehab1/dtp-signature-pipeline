@@ -4,8 +4,9 @@
 
 #' Build the comprehensive DTP analysis Excel workbook
 #'
-#' Generates an 8-sheet Excel workbook with run metadata, table of contents,
-#' canonical signature definitions, and all CRC survival and subtyping statistics tables.
+#' Generates an Excel workbook with run metadata, table of contents,
+#' canonical signature definitions, CRC survival/subtyping statistics tables,
+#' and pan-cancer survival tables.
 #' Includes bold frozen headers, autofilters, auto-sized columns, and conditional
 #' formatting highlighting FDR < 0.05.
 #'
@@ -15,8 +16,12 @@
 #' @param composite_defs Composite definitions table.
 #' @param crc Named list of CRC survival analysis results containing `stats_df`,
 #'   `adj_df`, `int_df`, `subtype_stats`, `subtype_survival_tbl`, and `subtype_pairwise_tbl`.
+#' @param pancan Named list of pan-cancer survival analysis results containing
+#'   `pancan_table_tbl` (from [build_pancan_composites()]) and `treated_stats_df`
+#'   (from [run_pancan_treated()]).
 #' @export
-build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs, crc = list()) {
+build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs,
+                                 crc = list(), pancan = list()) {
   wb <- openxlsx::createWorkbook()
 
   header_style    <- openxlsx::createStyle(textDecoration = "bold")
@@ -66,6 +71,21 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs, crc =
     ),
     stringsAsFactors = FALSE
   )
+
+  if (!is.null(pancan$pancan_table_tbl) || !is.null(pancan$treated_stats_df)) {
+    pancan_toc <- data.frame(
+      Sheet_Name = c(
+        "PanCancer_Survival",
+        "PanCancer_Treated"
+      ),
+      Description = c(
+        "Per-cohort and aggregate continuous-score Cox survival analysis across TCGA cohorts (Table 3.5)",
+        "Univariable survival analysis within treated patient subsets across TCGA cohorts"
+      ),
+      stringsAsFactors = FALSE
+    )
+    readme_toc <- rbind(readme_toc, pancan_toc)
+  }
 
   openxlsx::writeData(wb, "README", "DTP Signature Pipeline - Analysis Report", startRow = 1, startCol = 1)
   openxlsx::addStyle(wb, "README", style = title_style, rows = 1, cols = 1)
@@ -118,7 +138,7 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs, crc =
   }
 
   # ----------------------------------------------------------------------------
-  # Sheets 2-8 in exact requested order
+  # Sheets in exact requested order
   # ----------------------------------------------------------------------------
   add_data_sheet("Signature_Panel", panel_tbl)
   add_data_sheet("Composite_Definitions", composite_defs)
@@ -127,6 +147,10 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs, crc =
   add_data_sheet("CRC_Adjusted_Cox", crc$adj_df)
   add_data_sheet("CRC_Interaction_Cox", crc$int_df)
   add_data_sheet("CRC_Subtype_Characterization", crc$subtype_stats)
+  if (!is.null(pancan$pancan_table_tbl) || !is.null(pancan$treated_stats_df)) {
+    add_data_sheet("PanCancer_Survival", pancan$pancan_table_tbl)
+    add_data_sheet("PanCancer_Treated", pancan$treated_stats_df)
+  }
 
   dir.create(dirname(out_path), showWarnings = FALSE, recursive = TRUE)
   openxlsx::saveWorkbook(wb, out_path, overwrite = TRUE)

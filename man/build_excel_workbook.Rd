@@ -4,7 +4,14 @@
 \alias{build_excel_workbook}
 \title{Build the comprehensive DTP analysis Excel workbook}
 \usage{
-build_excel_workbook(cfg, out_path, panel_tbl, composite_defs, crc = list())
+build_excel_workbook(
+  cfg,
+  out_path,
+  panel_tbl,
+  composite_defs,
+  crc = list(),
+  pancan = list()
+)
 }
 \arguments{
 \item{cfg}{Config from \code{\link[=dtp_config]{dtp_config()}}.}
@@ -17,10 +24,15 @@ build_excel_workbook(cfg, out_path, panel_tbl, composite_defs, crc = list())
 
 \item{crc}{Named list of CRC survival analysis results containing \code{stats_df},
 \code{adj_df}, \code{int_df}, \code{subtype_stats}, \code{subtype_survival_tbl}, and \code{subtype_pairwise_tbl}.}
+
+\item{pancan}{Named list of pan-cancer survival analysis results containing
+\code{pancan_table_tbl} (from \code{\link[=build_pancan_composites]{build_pancan_composites()}}) and \code{treated_stats_df}
+(from \code{\link[=run_pancan_treated]{run_pancan_treated()}}).}
 }
 \description{
-Generates an 8-sheet Excel workbook with run metadata, table of contents,
-canonical signature definitions, and all CRC survival and subtyping statistics tables.
+Generates an Excel workbook with run metadata, table of contents,
+canonical signature definitions, CRC survival/subtyping statistics tables,
+and pan-cancer survival tables.
 Includes bold frozen headers, autofilters, auto-sized columns, and conditional
 formatting highlighting FDR < 0.05.
 }
