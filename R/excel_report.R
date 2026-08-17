@@ -19,9 +19,12 @@
 #' @param pancan Named list of pan-cancer survival analysis results containing
 #'   `pancan_table_tbl` (from [build_pancan_composites()]) and `treated_stats_df`
 #'   (from [run_pancan_treated()]).
+#' @param mets Named list of metastasis DE/GSEA analysis results containing
+#'   `gsea_pn`, `gsea_pm_adj`, `pvm_cmp`, `liver_df`, `roc_summary`,
+#'   `scores_df`, and `ssgsea_pvalues` (from [run_mets_de()]).
 #' @export
 build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs,
-                                 crc = list(), pancan = list()) {
+                                 crc = list(), pancan = list(), mets = list()) {
   wb <- openxlsx::createWorkbook()
 
   header_style    <- openxlsx::createStyle(textDecoration = "bold")
@@ -87,6 +90,34 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs,
     readme_toc <- rbind(readme_toc, pancan_toc)
   }
 
+  has_mets <- !is.null(mets$gsea_pn) || !is.null(mets$gsea_pm_adj) || !is.null(mets$pvm_cmp) ||
+              !is.null(mets$liver_df) || !is.null(mets$roc_summary) || !is.null(mets$scores_df) ||
+              !is.null(mets$ssgsea_pvalues)
+  if (has_mets) {
+    mets_toc <- data.frame(
+      Sheet_Name = c(
+        "Mets_GSEA_NormalVsPrimary",
+        "Mets_GSEA_PvM_Adjusted",
+        "Mets_GSEA_Adj_vs_Unadj",
+        "Mets_LiverPurity_Scores",
+        "Mets_ROC_AUC",
+        "Mets_SingleSample_Scores",
+        "Mets_SingleSample_Wilcoxon"
+      ),
+      Description = c(
+        "Gene Set Enrichment Analysis summary for Primary CRC vs Normal mucosa (GSE50760)",
+        "Gene Set Enrichment Analysis summary for Primary CRC vs Liver Metastasis purity-adjusted for liver score (GSE50760)",
+        "Comparison of GSEA NES and FDR between liver-unadjusted and purity-adjusted Primary vs Metastasis models",
+        "Per-sample liver-specific gene ssGSEA validation scores across Normal, Primary, and Metastasis tissues",
+        "Single-sample paired ROC AUC distinguishing Primary CRC from Liver Metastasis",
+        "Single-sample paired ssGSEA scores on liver-corrected expression matrix",
+        "Paired Wilcoxon test statistics and BH-adjusted p-values for single-sample ssGSEA scores"
+      ),
+      stringsAsFactors = FALSE
+    )
+    readme_toc <- rbind(readme_toc, mets_toc)
+  }
+
   openxlsx::writeData(wb, "README", "DTP Signature Pipeline - Analysis Report", startRow = 1, startCol = 1)
   openxlsx::addStyle(wb, "README", style = title_style, rows = 1, cols = 1)
 
@@ -150,6 +181,15 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs,
   if (!is.null(pancan$pancan_table_tbl) || !is.null(pancan$treated_stats_df)) {
     add_data_sheet("PanCancer_Survival", pancan$pancan_table_tbl)
     add_data_sheet("PanCancer_Treated", pancan$treated_stats_df)
+  }
+  if (has_mets) {
+    add_data_sheet("Mets_GSEA_NormalVsPrimary", mets$gsea_pn)
+    add_data_sheet("Mets_GSEA_PvM_Adjusted", mets$gsea_pm_adj)
+    add_data_sheet("Mets_GSEA_Adj_vs_Unadj", mets$pvm_cmp)
+    add_data_sheet("Mets_LiverPurity_Scores", mets$liver_df)
+    add_data_sheet("Mets_ROC_AUC", mets$roc_summary)
+    add_data_sheet("Mets_SingleSample_Scores", mets$scores_df)
+    add_data_sheet("Mets_SingleSample_Wilcoxon", mets$ssgsea_pvalues)
   }
 
   dir.create(dirname(out_path), showWarnings = FALSE, recursive = TRUE)

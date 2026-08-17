@@ -10,7 +10,8 @@ build_excel_workbook(
   panel_tbl,
   composite_defs,
   crc = list(),
-  pancan = list()
+  pancan = list(),
+  mets = list()
 )
 }
 \arguments{
@@ -28,6 +29,10 @@ build_excel_workbook(
 \item{pancan}{Named list of pan-cancer survival analysis results containing
 \code{pancan_table_tbl} (from \code{\link[=build_pancan_composites]{build_pancan_composites()}}) and \code{treated_stats_df}
 (from \code{\link[=run_pancan_treated]{run_pancan_treated()}}).}
+
+\item{mets}{Named list of metastasis DE/GSEA analysis results containing
+\code{gsea_pn}, \code{gsea_pm_adj}, \code{pvm_cmp}, \code{liver_df}, \code{roc_summary},
+\code{scores_df}, and \code{ssgsea_pvalues} (from \code{\link[=run_mets_de]{run_mets_de()}}).}
 }
 \description{
 Generates an Excel workbook with run metadata, table of contents,
