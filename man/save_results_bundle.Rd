@@ -9,7 +9,13 @@ save_results_bundle(
   crc_result,
   panel_tbl,
   composite_defs,
-  path = "output/results_bundle.rds"
+  path = "output/results_bundle.rds",
+  pancan_result = NULL,
+  treated_result = NULL,
+  mets_result = NULL,
+  fig_dir = "output/figures",
+  excel_path = NULL,
+  pancan_table_tbl = NULL
 )
 }
 \arguments{
@@ -22,12 +28,25 @@ save_results_bundle(
 \item{composite_defs}{Composite definitions table from \code{\link[=load_composite_defs]{load_composite_defs()}}.}
 
 \item{path}{Destination RDS path; defaults to \code{"output/results_bundle.rds"}.}
+
+\item{pancan_result}{Optional result list returned by \code{\link[=run_pancan_survival]{run_pancan_survival()}}.}
+
+\item{treated_result}{Optional result list returned by \code{\link[=run_pancan_treated]{run_pancan_treated()}}.}
+
+\item{mets_result}{Optional result list returned by \code{\link[=run_mets_de]{run_mets_de()}}.}
+
+\item{fig_dir}{Directory path where composite figure PNG/PDF files live; defaults to \code{"output/figures"}.}
+
+\item{excel_path}{Optional character path to the built \code{.xlsx} workbook.}
+
+\item{pancan_table_tbl}{Optional Table 3.5 tibble returned by \code{\link[=build_pancan_composites]{build_pancan_composites()}}.}
 }
 \value{
 The saved path, invisibly.
 }
 \description{
 Trims the CRC clinical data frames and bundles them alongside signature
-annotations, precomputed survival statistics, configuration thresholds, and
+annotations, precomputed survival statistics, pan-cancer and metastasis analysis results,
+configuration thresholds, on-disk artifact paths, and
 panel modification timestamp for dashboard consumption.
 }

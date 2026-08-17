@@ -307,5 +307,6 @@ test_that("build_excel_workbook creates workbook with PanCancer sheets when panc
   sheets <- openxlsx::getSheetNames(tmp_xlsx)
   expect_true("PanCancer_Survival" %in% sheets)
   expect_true("PanCancer_Treated" %in% sheets)
-  expect_equal(length(sheets), 10)
+  expect_true("Session_Info" %in% sheets)
+  expect_equal(length(sheets), 11)
 })

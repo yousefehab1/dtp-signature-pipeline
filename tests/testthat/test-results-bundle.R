@@ -80,9 +80,26 @@ test_that("save_results_bundle and load_results_bundle round-trip with trimmed c
 
   bundle <- load_results_bundle(tmp_file)
 
-  # Check top-level names
-  expected_names <- c("gse", "tcga", "panel_tbl", "composite_defs", "stats_df", "cfg", "built_at", "panel_mtime")
+  # Check top-level names including new extension fields
+  expected_names <- c(
+    "gse", "tcga", "panel_tbl", "composite_defs", "stats_df", "cfg", "built_at", "panel_mtime",
+    "pancan_stats_df", "pancan_table_tbl", "treated_stats_df", "mets_gsea_pn", "mets_gsea_pm_adj",
+    "mets_pvm_cmp", "mets_liver_df", "mets_roc_summary", "mets_ssgsea_pvalues", "fig_dir", "excel_path"
+  )
   expect_setequal(names(bundle), expected_names)
+
+  # Check that optional fields default gracefully to NULL / default paths
+  expect_null(bundle$pancan_stats_df)
+  expect_null(bundle$pancan_table_tbl)
+  expect_null(bundle$treated_stats_df)
+  expect_null(bundle$mets_gsea_pn)
+  expect_null(bundle$mets_gsea_pm_adj)
+  expect_null(bundle$mets_pvm_cmp)
+  expect_null(bundle$mets_liver_df)
+  expect_null(bundle$mets_roc_summary)
+  expect_null(bundle$mets_ssgsea_pvalues)
+  expect_null(bundle$excel_path)
+  expect_equal(bundle$fig_dir, "output/figures")
 
   # Check trimmed GSE columns
   expected_gse_cols <- c("Sample_ID", "Up_ssGSEA", "Down_ssGSEA", "Surv_3yr", "Recurrence_3yr",
@@ -105,6 +122,66 @@ test_that("save_results_bundle and load_results_bundle round-trip with trimmed c
 
   # Missing bundle load error
   expect_error(load_results_bundle(tempfile(fileext = ".rds")), "Results bundle not found")
+})
+
+test_that("save_results_bundle extended call captures pan-cancer, mets, and artifact paths", {
+  cfg <- dtp_config()
+  panel_tbl <- data.frame(Signature_ID = "Up", Signature_Name = "DTP Up", Gene_ID = "G1", stringsAsFactors = FALSE)
+  composite_defs <- data.frame(Composite_ID = "Comp", Display_Name = "DTP", Positive_Signature = "Up",
+                               Negative_Signature = "None", Is_Default = TRUE, stringsAsFactors = FALSE)
+  crc_result <- list(
+    gse_clinical = data.frame(
+      Sample_ID = "S1", TNM_stage = "1", MMR = "pMMR",
+      Up_ssGSEA = 1.0, Surv_3yr = factor("Alive_3yr"), stringsAsFactors = FALSE
+    ),
+    tcga_clinical = data.frame(
+      ID = "T1", Stage = "I", paper_MSI_status = "MSS",
+      Up_ssGSEA = 0.5, Surv_3yr = factor("Alive_3yr"), stringsAsFactors = FALSE
+    ),
+    stats_df = data.frame(Test = "Wilcoxon", stringsAsFactors = FALSE)
+  )
+
+  pancan_res <- list(stats_df = data.frame(Project = "TCGA-BRCA", HR = 1.5))
+  treated_res <- list(stats_df = data.frame(Project = "TCGA-BRCA", HR = 1.8))
+  mets_res <- list(
+    gsea_pn = data.frame(ID = "Sig1", NES = 1.5),
+    gsea_pm_adj = data.frame(ID = "Sig1", NES = 1.2),
+    pvm_cmp = data.frame(ID = "Sig1", NES_adj = 1.2),
+    liver_df = data.frame(Sample = "S1", Score = 0.8),
+    roc_summary = data.frame(ID = "Sig1", AUC = 0.85),
+    ssgsea_pvalues = data.frame(Signature = "Sig1", p_adj_BH = 0.01)
+  )
+  pancan_tbl <- data.frame(Project = "TCGA-BRCA", Table = 3.5)
+
+  tmp_file <- tempfile(fileext = ".rds")
+  on.exit(unlink(tmp_file), add = TRUE)
+
+  save_results_bundle(
+    cfg = cfg,
+    crc_result = crc_result,
+    panel_tbl = panel_tbl,
+    composite_defs = composite_defs,
+    path = tmp_file,
+    pancan_result = pancan_res,
+    treated_result = treated_res,
+    mets_result = mets_res,
+    fig_dir = "custom/figures",
+    excel_path = "custom/report.xlsx",
+    pancan_table_tbl = pancan_tbl
+  )
+
+  bundle <- load_results_bundle(tmp_file)
+  expect_equal(bundle$pancan_stats_df$Project, "TCGA-BRCA")
+  expect_equal(bundle$pancan_table_tbl$Table, 3.5)
+  expect_equal(bundle$treated_stats_df$HR, 1.8)
+  expect_equal(bundle$mets_gsea_pn$NES, 1.5)
+  expect_equal(bundle$mets_gsea_pm_adj$NES, 1.2)
+  expect_equal(bundle$mets_pvm_cmp$NES_adj, 1.2)
+  expect_equal(bundle$mets_liver_df$Score, 0.8)
+  expect_equal(bundle$mets_roc_summary$AUC, 0.85)
+  expect_equal(bundle$mets_ssgsea_pvalues$p_adj_BH, 0.01)
+  expect_equal(bundle$fig_dir, "custom/figures")
+  expect_equal(bundle$excel_path, "custom/report.xlsx")
 })
 
 test_that("check_bundle_staleness correctly compares modification timestamps", {

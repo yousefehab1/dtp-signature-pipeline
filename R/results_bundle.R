@@ -76,7 +76,8 @@
 #' Save precomputed results bundle
 #'
 #' Trims the CRC clinical data frames and bundles them alongside signature
-#' annotations, precomputed survival statistics, configuration thresholds, and
+#' annotations, precomputed survival statistics, pan-cancer and metastasis analysis results,
+#' configuration thresholds, on-disk artifact paths, and
 #' panel modification timestamp for dashboard consumption.
 #'
 #' @param cfg Config from [dtp_config()].
@@ -84,10 +85,21 @@
 #' @param panel_tbl Canonical signature panel table from [load_signature_panel()].
 #' @param composite_defs Composite definitions table from [load_composite_defs()].
 #' @param path Destination RDS path; defaults to `"output/results_bundle.rds"`.
+#' @param pancan_result Optional result list returned by [run_pancan_survival()].
+#' @param treated_result Optional result list returned by [run_pancan_treated()].
+#' @param mets_result Optional result list returned by [run_mets_de()].
+#' @param fig_dir Directory path where composite figure PNG/PDF files live; defaults to `"output/figures"`.
+#' @param excel_path Optional character path to the built `.xlsx` workbook.
+#' @param pancan_table_tbl Optional Table 3.5 tibble returned by [build_pancan_composites()].
 #' @return The saved path, invisibly.
 #' @export
 save_results_bundle <- function(cfg, crc_result, panel_tbl, composite_defs,
-                                path = "output/results_bundle.rds") {
+                                path = "output/results_bundle.rds",
+                                pancan_result = NULL, treated_result = NULL,
+                                mets_result = NULL,
+                                fig_dir = "output/figures",
+                                excel_path = NULL,
+                                pancan_table_tbl = NULL) {
   gse_trimmed  <- .trim_cohort_clinical(crc_result$gse_clinical, "GSE39582", cfg)
   tcga_trimmed <- .trim_cohort_clinical(crc_result$tcga_clinical, "TCGA-COAD", cfg)
 
@@ -102,15 +114,82 @@ save_results_bundle <- function(cfg, crc_result, panel_tbl, composite_defs,
     NA
   }
 
+  pancan_stats_df <- if (!is.null(pancan_result) && !is.null(pancan_result$stats_df)) {
+    pancan_result$stats_df
+  } else {
+    NULL
+  }
+
+  pancan_tbl <- if (!is.null(pancan_table_tbl)) {
+    pancan_table_tbl
+  } else if (!is.null(pancan_result) && !is.null(pancan_result$pancan_table_tbl)) {
+    pancan_result$pancan_table_tbl
+  } else {
+    NULL
+  }
+
+  treated_stats_df <- if (!is.null(treated_result) && !is.null(treated_result$stats_df)) {
+    treated_result$stats_df
+  } else {
+    NULL
+  }
+
+  mets_gsea_pn <- if (!is.null(mets_result) && !is.null(mets_result$gsea_pn)) {
+    mets_result$gsea_pn
+  } else {
+    NULL
+  }
+
+  mets_gsea_pm_adj <- if (!is.null(mets_result) && !is.null(mets_result$gsea_pm_adj)) {
+    mets_result$gsea_pm_adj
+  } else {
+    NULL
+  }
+
+  mets_pvm_cmp <- if (!is.null(mets_result) && !is.null(mets_result$pvm_cmp)) {
+    mets_result$pvm_cmp
+  } else {
+    NULL
+  }
+
+  mets_liver_df <- if (!is.null(mets_result) && !is.null(mets_result$liver_df)) {
+    mets_result$liver_df
+  } else {
+    NULL
+  }
+
+  mets_roc_summary <- if (!is.null(mets_result) && !is.null(mets_result$roc_summary)) {
+    mets_result$roc_summary
+  } else {
+    NULL
+  }
+
+  mets_ssgsea_pvalues <- if (!is.null(mets_result) && !is.null(mets_result$ssgsea_pvalues)) {
+    mets_result$ssgsea_pvalues
+  } else {
+    NULL
+  }
+
   bundle <- list(
-    gse            = gse_trimmed,
-    tcga           = tcga_trimmed,
-    panel_tbl      = panel_tbl,
-    composite_defs = composite_defs,
-    stats_df       = crc_result$stats_df,
-    cfg            = cfg_subset,
-    built_at       = Sys.time(),
-    panel_mtime    = panel_mtime
+    gse                 = gse_trimmed,
+    tcga                = tcga_trimmed,
+    panel_tbl           = panel_tbl,
+    composite_defs      = composite_defs,
+    stats_df            = crc_result$stats_df,
+    cfg                 = cfg_subset,
+    built_at            = Sys.time(),
+    panel_mtime         = panel_mtime,
+    pancan_stats_df     = pancan_stats_df,
+    pancan_table_tbl    = pancan_tbl,
+    treated_stats_df    = treated_stats_df,
+    mets_gsea_pn        = mets_gsea_pn,
+    mets_gsea_pm_adj    = mets_gsea_pm_adj,
+    mets_pvm_cmp        = mets_pvm_cmp,
+    mets_liver_df       = mets_liver_df,
+    mets_roc_summary    = mets_roc_summary,
+    mets_ssgsea_pvalues = mets_ssgsea_pvalues,
+    fig_dir             = fig_dir,
+    excel_path          = excel_path
   )
 
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)

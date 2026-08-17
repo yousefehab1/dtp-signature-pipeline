@@ -18,17 +18,44 @@ ui <- bslib::page_navbar(
     bootswatch = "flatly",
     primary = "#3B6EA5"
   ),
-  # Phase 5 MVP Tab: Signature Explorer
+  bslib::nav_panel(
+    title = "Overview",
+    mod_overview_ui("overview")
+  ),
   bslib::nav_panel(
     title = "Signature Explorer",
     mod_signature_explorer_ui("explorer")
+  ),
+  bslib::nav_panel(
+    title = "CRC Survival",
+    mod_crc_ui("crc")
+  ),
+  bslib::nav_panel(
+    title = "Pan-Cancer Survival",
+    mod_pancan_ui("pancan")
+  ),
+  bslib::nav_panel(
+    title = "Metastasis DE/GSEA",
+    mod_mets_ui("mets")
+  ),
+  bslib::nav_panel(
+    title = "Tables",
+    mod_tables_ui("tables")
+  ),
+  bslib::nav_panel(
+    title = "About",
+    mod_about_ui("about")
   )
-  # Future tabs (Overview, CRC Survival, Pan-Cancer, Mets, Tables, About) will be added here in Phase 7
 )
 
 server <- function(input, output, session) {
-  # Server logic for Signature Explorer module
+  mod_overview_server("overview", bundle = bundle)
   mod_signature_explorer_server("explorer", bundle = bundle, is_stale = is_bundle_stale)
+  mod_crc_server("crc", bundle = bundle)
+  mod_pancan_server("pancan", bundle = bundle)
+  mod_mets_server("mets", bundle = bundle)
+  mod_tables_server("tables", bundle = bundle)
+  mod_about_server("about", bundle = bundle)
 }
 
 shiny::shinyApp(ui = ui, server = server)

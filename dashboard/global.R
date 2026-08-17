@@ -25,14 +25,27 @@ suppressPackageStartupMessages({
 })
 
 # 2. Source modules if not already sourced
-mod_files <- c(
-  "dashboard/R/mod_signature_explorer.R",
-  "R/mod_signature_explorer.R"
+module_names <- c(
+  "mod_signature_explorer.R",
+  "mod_overview.R",
+  "mod_crc.R",
+  "mod_pancan.R",
+  "mod_mets.R",
+  "mod_tables.R",
+  "mod_about.R"
 )
-for (mf in mod_files) {
-  if (file.exists(mf)) {
-    source(mf, local = FALSE)
-    break
+
+for (m in module_names) {
+  candidates <- c(
+    file.path("dashboard", "R", m),
+    file.path("R", m),
+    file.path("..", "dashboard", "R", m)
+  )
+  for (cand in candidates) {
+    if (file.exists(cand)) {
+      source(cand, local = FALSE)
+      break
+    }
   }
 }
 

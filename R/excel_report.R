@@ -118,6 +118,13 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs,
     readme_toc <- rbind(readme_toc, mets_toc)
   }
 
+  session_toc <- data.frame(
+    Sheet_Name = "Session_Info",
+    Description = "R session information, package versions, and runtime configuration metadata",
+    stringsAsFactors = FALSE
+  )
+  readme_toc <- rbind(readme_toc, session_toc)
+
   openxlsx::writeData(wb, "README", "DTP Signature Pipeline - Analysis Report", startRow = 1, startCol = 1)
   openxlsx::addStyle(wb, "README", style = title_style, rows = 1, cols = 1)
 
@@ -191,6 +198,55 @@ build_excel_workbook <- function(cfg, out_path, panel_tbl, composite_defs,
     add_data_sheet("Mets_SingleSample_Scores", mets$scores_df)
     add_data_sheet("Mets_SingleSample_Wilcoxon", mets$ssgsea_pvalues)
   }
+
+  # ----------------------------------------------------------------------------
+  # Sheet: Session_Info
+  # ----------------------------------------------------------------------------
+  imports_pkgs <- c(
+    "dtpsig", "dplyr", "tidyr", "tibble", "readr", "purrr", "stringr",
+    "ggplot2", "patchwork", "survival", "survminer", "GSVA", "GSEABase",
+    "limma", "clusterProfiler", "enrichplot", "msigdbr", "org.Hs.eg.db",
+    "AnnotationDbi", "CMScaller", "scales", "digest", "openxlsx", "yaml", "rlang"
+  )
+  pkg_rows <- data.frame(
+    Category = "Package Version",
+    Property = imports_pkgs,
+    Value = vapply(imports_pkgs, function(p) {
+      tryCatch(as.character(utils::packageVersion(p)), error = function(e) "Not Available")
+    }, character(1)),
+    stringsAsFactors = FALSE
+  )
+
+  env_rows <- data.frame(
+    Category = "Environment",
+    Property = c("R Version", "Platform", "Run Timestamp"),
+    Value = c(R.version.string, R.version$platform, format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z")),
+    stringsAsFactors = FALSE
+  )
+
+  cfg_keys <- intersect(
+    c("id_type", "score_suffix", "os_cutpoint", "rfs_cutpoint", "min_group_n",
+      "min_km_group_n", "min_events", "min_cox_n", "min_epv", "min_cohort_n",
+      "gsea_pvalue_cutoff", "gsea_min_gs_size", "gsea_max_gs_size"),
+    names(cfg)
+  )
+  cfg_rows <- data.frame(
+    Category = "Configuration",
+    Property = cfg_keys,
+    Value = vapply(cfg_keys, function(k) paste(as.character(cfg[[k]]), collapse = ", "), character(1)),
+    stringsAsFactors = FALSE
+  )
+
+  sess_lines <- utils::capture.output(utils::sessionInfo())
+  raw_sess_rows <- data.frame(
+    Category = "Session Info Text",
+    Property = sprintf("Line %03d", seq_along(sess_lines)),
+    Value = sess_lines,
+    stringsAsFactors = FALSE
+  )
+
+  session_info_df <- rbind(env_rows, pkg_rows, cfg_rows, raw_sess_rows)
+  add_data_sheet("Session_Info", session_info_df)
 
   dir.create(dirname(out_path), showWarnings = FALSE, recursive = TRUE)
   openxlsx::saveWorkbook(wb, out_path, overwrite = TRUE)
