@@ -39,7 +39,6 @@ dtp_config <- function(config_path = "pipeline/pipeline_config.yml",
     composite_defs_path = "inst/signatures/composite_defs.csv",
     crc_modifiers = c("CMS", "PDS", "Stage_bin", "MSI_group"),
     cache_dir = "cache",
-    keep_intermediate = FALSE,
     legacy_cache_dir = NULL,
     legacy_gdcdata_dir = NULL,
     global_seed = 42
