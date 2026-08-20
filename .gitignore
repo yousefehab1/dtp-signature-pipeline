@@ -11,3 +11,8 @@ renv/staging/
 .DS_Store
 inst/doc
 inst/signatures/panel.csv
+
+# TCGAbiolinks scratch files written to the working directory
+MANIFEST.txt
+df.rds
+results.rds
