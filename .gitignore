@@ -10,3 +10,4 @@ renv/library/
 renv/staging/
 .DS_Store
 inst/doc
+inst/signatures/panel.csv
