@@ -7,7 +7,7 @@
 # ==============================================================================
 
 suppressPackageStartupMessages({
-  library(devtools)
+  library(pkgload)
   library(openxlsx)
   library(readr)
   library(dplyr)
@@ -18,7 +18,7 @@ cat("Building Full DTP Pipeline Results Bundle & Artifacts\n")
 cat("======================================================================\n\n")
 
 # 1. Load package and configuration
-devtools::load_all(".")
+pkgload::load_all(".")
 cfg <- dtp_config()
 panel_tbl <- load_signature_panel(cfg)
 composite_defs <- load_composite_defs(cfg)
