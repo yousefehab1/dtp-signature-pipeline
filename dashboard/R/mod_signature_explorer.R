@@ -118,7 +118,7 @@ mod_signature_explorer_ui <- function(id) {
         DT::dataTableOutput(ns("stats_table")),
         bslib::card_footer(
           class = "text-muted small",
-          "Live query — not FDR-corrected; see the static CRC report for BH-adjusted results across the full signature panel."
+          "Live query - not FDR-corrected; see the static CRC report for BH-adjusted results across the full signature panel."
         )
       )
     )
@@ -483,7 +483,7 @@ mod_signature_explorer_server <- function(id, bundle, is_stale = FALSE) {
         rownames = FALSE,
         caption = htmltools::tags$caption(
           style = "caption-side: bottom; text-align: left; font-style: italic; color: #6c757d; margin-top: 8px;",
-          "Live query — not FDR-corrected; see the static CRC report for BH-adjusted results across the full signature panel."
+          "Live query - not FDR-corrected; see the static CRC report for BH-adjusted results across the full signature panel."
         )
       )
     })

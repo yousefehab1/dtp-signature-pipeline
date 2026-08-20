@@ -43,8 +43,3 @@ crc_modifiers: ["CMS", "PDS", "Stage_bin", "MSI_group"]
 
 # Cache
 cache_dir: "cache"
-
-# Legacy data reuse -- warm-through cache so the ~7.6GB of GEO/GDC downloads already
-# present in the old thesis project are not re-fetched. Read-only; never written to.
-legacy_cache_dir: "/Users/elabd/Master's Work/Thesis/cache"
-legacy_gdcdata_dir: "/Users/elabd/Master's Work/Thesis/GDCdata"

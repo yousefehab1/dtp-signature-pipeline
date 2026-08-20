@@ -39,8 +39,6 @@ dtp_config <- function(config_path = "pipeline/pipeline_config.yml",
     composite_defs_path = "inst/signatures/composite_defs.csv",
     crc_modifiers = c("CMS", "PDS", "Stage_bin", "MSI_group"),
     cache_dir = "cache",
-    legacy_cache_dir = NULL,
-    legacy_gdcdata_dir = NULL,
     global_seed = 42
   )
 
@@ -60,7 +58,7 @@ dtp_config <- function(config_path = "pipeline/pipeline_config.yml",
   for (f in vector_fields) cfg[[f]] <- as.character(unlist(cfg[[f]]))
 
   path_fields <- c("cdr_file", "signature_panel_path", "composite_defs_path",
-                    "cache_dir", "legacy_cache_dir", "legacy_gdcdata_dir")
+                    "cache_dir")
   for (f in path_fields) {
     if (!is.null(cfg[[f]]) && !is_absolute_path(cfg[[f]])) {
       cfg[[f]] <- file.path(root, cfg[[f]])

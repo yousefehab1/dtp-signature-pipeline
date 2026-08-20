@@ -51,12 +51,8 @@
     ex
   })
   supp_dir <- supp
-  if (!dir.exists(supp_dir)) {
-    if (!is.null(cfg$legacy_cache_dir) && dir.exists(file.path(cfg$legacy_cache_dir, basename(supp_dir)))) {
-      supp_dir <- file.path(cfg$legacy_cache_dir, basename(supp_dir))
-    } else if (dir.exists(file.path(cfg$cache_dir, basename(supp_dir)))) {
-      supp_dir <- file.path(cfg$cache_dir, basename(supp_dir))
-    }
+  if (!dir.exists(supp_dir) && dir.exists(file.path(cfg$cache_dir, basename(supp_dir)))) {
+    supp_dir <- file.path(cfg$cache_dir, basename(supp_dir))
   }
 
   all_files <- list.files(supp_dir, full.names = TRUE)
@@ -93,7 +89,7 @@
 
   # Drop undetected / invariant genes before any modelling.
   # An all-zero (or near-constant) FPKM row yields limma t = 0, and in the GSEA
-  # ranked list all such genes are ordered purely by random tie-breaking —
+  # ranked list all such genes are ordered purely by random tie-breaking -
   # a large contiguous block of noise-ranked genes that dilutes enrichment-score
   # normalisation. Require detectable expression (FPKM > 0, log2 > 0) in >= 10% of samples.
   min_det <- max(3L, floor(0.10 * ncol(log2_matrix)))
@@ -238,7 +234,7 @@ run_mets_de <- function(cfg, panel_tbl, out_root = "output", core_signature = "U
     .mets_paired_wilcox(liver_df, "Liver", "Tissue", "Patient", x[1], x[2])
   }, numeric(1))
   names(pvl) <- c("Normal_vs_Primary", "Primary_vs_Metastasis", "Normal_vs_Metastasis")
-  message(sprintf("Liver validation — N/P p=%.3g | P/M p=%.3g | N/M p=%.3g", pvl[1], pvl[2], pvl[3]))
+  message(sprintf("Liver validation - N/P p=%.3g | P/M p=%.3g | N/M p=%.3g", pvl[1], pvl[2], pvl[3]))
 
   # ---- Part 5: Purity Sensitivity Model + Corrected Matrix ----
   design_adj <- stats::model.matrix(~ Patient + Tissue_for_DE + LiverScore, data = cd2)

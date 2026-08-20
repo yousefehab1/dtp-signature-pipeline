@@ -30,15 +30,12 @@ finalize_run <- function(root) {
   message("sessionInfo saved to ", file.path(root, "sessionInfo.txt"))
 }
 
-#' Disk-backed cache with legacy warm-through
+#' Disk-backed cache
 #'
-#' `fun` only runs on a cache miss. On a miss, first checks
-#' `cfg$legacy_cache_dir` (the old thesis project's cache) for the same key
-#' and copies it in if found there, so raw GEO/GDC downloads are never
-#' re-fetched. Entries whose content depends on config (e.g. `id_type` or the
-#' signature panel) must pass `vary_on` -- this hashes those values into the
-#' filename so a config change can never silently load a stale, incompatible
-#' cache entry (the legacy project's `cache_rds()` had no such guard).
+#' `fun` only runs on a cache miss. Entries whose content depends on config
+#' (e.g. `id_type` or the signature panel) must pass `vary_on` -- this hashes
+#' those values into the filename so a config change can never silently load
+#' a stale, incompatible cache entry.
 #'
 #' @param cfg Config from [dtp_config()].
 #' @param key Cache key; sanitized to a safe filename.
@@ -46,7 +43,7 @@ finalize_run <- function(root) {
 #' @param vary_on Optional list of config-derived values the cached value
 #'   depends on (e.g. `list(id_type = cfg$id_type)`). Included in the cache
 #'   filename via a short hash. Omit for raw downloads that are independent
-#'   of `cfg` and should warm-hit the legacy cache directly.
+#'   of `cfg`.
 #' @export
 cache_rds <- function(cfg, key, fun, vary_on = NULL) {
   safe_key <- gsub("[^A-Za-z0-9_]+", "_", key)
@@ -60,16 +57,6 @@ cache_rds <- function(cfg, key, fun, vary_on = NULL) {
   if (file.exists(f_new)) {
     message("[cache] ", key, " (load)")
     return(readRDS(f_new))
-  }
-
-  if (!is.null(cfg$legacy_cache_dir)) {
-    f_legacy <- file.path(cfg$legacy_cache_dir, fname)
-    if (file.exists(f_legacy)) {
-      message("[cache] ", key, " (warm from legacy cache)")
-      dir.create(cfg$cache_dir, recursive = TRUE, showWarnings = FALSE)
-      file.copy(f_legacy, f_new)
-      return(readRDS(f_new))
-    }
   }
 
   message("[cache] ", key, " (build)")

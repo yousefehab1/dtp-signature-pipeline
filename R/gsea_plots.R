@@ -28,7 +28,7 @@
     enrichplot:::gsInfo(gsea_obj, gene_set_id),
     error = function(e)
       stop("enrichplot:::gsInfo() failed for gene set '", gene_set_id,
-           "' — the installed enrichplot version may have changed or removed ",
+           "' - the installed enrichplot version may have changed or removed ",
            "this unexported helper.\nDetails: ", conditionMessage(e),
            call. = FALSE)
   )
@@ -86,7 +86,7 @@ plot_gsea_enrichment <- function(gsea_obj,
     df
   })
   es_all <- dplyr::bind_rows(es_list)
-  # Preserve the caller's order for the faceted hit panel and the legend — a
+  # Preserve the caller's order for the faceted hit panel and the legend - a
   # character column would otherwise facet/sort alphabetically, desyncing the
   # hit rows from the NES heatmaps drawn beside them in the composite.
   es_all$GeneSet <- factor(es_all$GeneSet, levels = gene_set_ids)

@@ -60,7 +60,7 @@ FOREST_XLIM <- c(0.1, 10)
 
 # Add per-SD HR columns (point + both bounds) + direction + off-scale squish.
 # Non-convergent fits (non-finite per-SD HR or CI) are NOT squished to the
-# FOREST_XLIM boundary — display coords stay NA so geoms drop them (na.rm).
+# FOREST_XLIM boundary - display coords stay NA so geoms drop them (na.rm).
 .pancan_rescale <- function(d, sd_vec) {
   hr <- .pancan_num(d$HR)
   lo <- .pancan_num(d$HR_lower)
@@ -403,7 +403,7 @@ build_pancan_table <- function(stats_df, master, cfg = dtp_config(), composite_d
 }
 
 # ==============================================================================
-# FIGURE 7 — POOLED PAN-CANCER VIOLINS
+# FIGURE 7 - POOLED PAN-CANCER VIOLINS
 # ==============================================================================
 
 #' Build Figure 7: Pooled pan-cancer DTP score violins by 3-year outcome

@@ -47,7 +47,7 @@ cat("\n--- Step 3: Cache Verification (Zero Fresh GEO Downloads) ---\n")
 for (cl in unique(cache_logs)) cat(" ", cl, "\n")
 fresh_builds <- grep("\\(build\\)", cache_logs, value = TRUE)
 if (length(fresh_builds) == 0) {
-  cat("  [PASS] Zero fresh GEO downloads triggered (all loaded or warmed from legacy cache).\n")
+  cat("  [PASS] Zero fresh GEO downloads triggered (all loaded from cache).\n")
 } else {
   cat("  [!] Fresh cache builds detected:\n")
   for (fb in fresh_builds) cat("   ", fb, "\n")

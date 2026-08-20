@@ -109,7 +109,7 @@ build_mets_gsea_composite <- function(mets_result, cfg = dtp_config()) {
 
   # sig_order is the UNION of the two results, so it can name a signature that one
   # object lacks (a set can drop out of one contrast and not the other). Each
-  # enrichment plot may only be asked for IDs its own object holds —
+  # enrichment plot may only be asked for IDs its own object holds -
   # .gsea_running_data() stop()s otherwise, which would take the whole composite down.
   # The shared order is preserved; only the missing rows are omitted, and flagged.
   pn_ids <- intersect(sig_order, df_pn$ID)

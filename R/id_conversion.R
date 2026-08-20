@@ -1,9 +1,7 @@
 # Gene-ID type detection and conversion, controlled by cfg$id_type ("symbol"
 # or "ensembl"). Conversions use org.Hs.eg.db (no internet required); the
 # full organism-wide map is cached on disk via cache_rds() so it only builds
-# once (and warm-hits the legacy project's cache immediately, since it does
-# not depend on the signature panel or on cfg$id_type -- only on which
-# `from`/`to` keytypes are requested, which are already encoded in the key).
+# once per `from`/`to` keytype pair.
 
 #' Heuristically detect a gene-ID vector's type
 #'
@@ -32,8 +30,7 @@ strip_ensembl_version <- function(ids) sub("\\.\\d+$", "", ids)
   }
   key <- paste0("full_id_map_", tolower(from), "_to_", tolower(to))
   # Organism-wide, independent of the signature panel and of cfg$id_type (the
-  # direction is already encoded in `key`) -- no vary_on, so this always
-  # warm-hits the legacy project's cache instead of rebuilding.
+  # direction is already encoded in `key`) -- no vary_on needed.
   cache_rds(cfg, key, function() {
     all_keys <- AnnotationDbi::keys(org.Hs.eg.db::org.Hs.eg.db, keytype = from)
     map <- suppressMessages(

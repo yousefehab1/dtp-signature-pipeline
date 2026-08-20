@@ -149,16 +149,14 @@ test_that(".pancan_treated_stats_block gates cohorts below min_cox_n for aggrega
   expect_true("TCGA-SMALL" %in% stats_df$Project)
 })
 
-test_that(".pancan_treatment_flags caching semantics: loads from cache, warms legacy, and does not cache errors", {
+test_that(".pancan_treatment_flags caching semantics: loads from cache and does not cache errors", {
   tmp_cache <- file.path(tempdir(), "test_treat_cache")
-  tmp_legacy <- file.path(tempdir(), "test_treat_legacy")
   dir.create(tmp_cache, showWarnings = FALSE, recursive = TRUE)
-  dir.create(tmp_legacy, showWarnings = FALSE, recursive = TRUE)
-  on.exit(unlink(c(tmp_cache, tmp_legacy), recursive = TRUE), add = TRUE)
+  on.exit(unlink(tmp_cache, recursive = TRUE), add = TRUE)
 
-  cfg <- dtp_config(overrides = list(cache_dir = tmp_cache, legacy_cache_dir = tmp_legacy))
+  cfg <- dtp_config(overrides = list(cache_dir = tmp_cache))
 
-  # 1. Warm-through from legacy cache
+  # 1. Direct cache hit from a pre-populated cache_dir
   fake_df <- data.frame(
     Patient_ID = c("TCGA-01-0001", "TCGA-01-0002"),
     Project_ID = "TCGA-TEST1",
@@ -166,19 +164,12 @@ test_that(".pancan_treatment_flags caching semantics: loads from cache, warms le
     rad_yes = c(FALSE, FALSE), rad_no = c(TRUE, TRUE),
     stringsAsFactors = FALSE
   )
-  legacy_file <- file.path(tmp_legacy, "treat_flags_TCGA_TEST1.rds")
-  saveRDS(fake_df, legacy_file)
+  saveRDS(fake_df, file.path(tmp_cache, "treat_flags_TCGA_TEST1.rds"))
 
-  # Should warm hit from legacy cache and copy into cache_dir
-  res_legacy <- .pancan_treatment_flags(cfg, "TCGA-TEST1")
-  expect_equal(res_legacy, fake_df)
-  expect_true(file.exists(file.path(tmp_cache, "treat_flags_TCGA_TEST1.rds")))
-
-  # 2. Direct cache hit from cache_dir on next call
   res_hit <- .pancan_treatment_flags(cfg, "TCGA-TEST1")
   expect_equal(res_hit, fake_df)
 
-  # 3. Failed network pull is NOT cached
+  # 2. Failed network pull is NOT cached
   testthat::with_mocked_bindings(
     GDCquery_clinic = function(project, type) stop("Simulated network timeout"),
     .package = "TCGAbiolinks",
@@ -189,7 +180,7 @@ test_that(".pancan_treatment_flags caching semantics: loads from cache, warms le
     }
   )
 
-  # 4. Successful network pull IS cached
+  # 3. Successful network pull IS cached
   fake_gdc_clinic <- data.frame(
     submitter_id = c("TCGA-02-0001", "TCGA-02-0002"),
     treatments_pharmaceutical_treatment_or_therapy = c("yes", "no"),

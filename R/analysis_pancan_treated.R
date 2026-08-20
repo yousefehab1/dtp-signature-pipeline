@@ -7,7 +7,7 @@
 # changed downstream without re-pulling from GDC.
 #
 # IMPORTANT BUSINESS RULE: A network FAILURE is NOT cached (it would otherwise pin
-# the cohort at zero treated forever) — only a real response is, including a cohort
+# the cohort at zero treated forever) - only a real response is, including a cohort
 # that genuinely lacks one or both treatment fields. We use manual caching here
 # instead of cache_rds() because cache_rds() cannot distinguish "don't cache this"
 # from a normal return value.
@@ -38,28 +38,16 @@
       return(readRDS(f))
     }
 
-    # Warm-through from legacy cache if present
-    if (!is.null(cfg$legacy_cache_dir)) {
-      fname    <- paste0(gsub("[^A-Za-z0-9_]+", "_", paste0("treat_flags_", proj)), ".rds")
-      f_legacy <- file.path(cfg$legacy_cache_dir, fname)
-      if (file.exists(f_legacy)) {
-        message("[cache] treat_flags_", proj, " (warm from legacy cache)")
-        dir.create(cfg$cache_dir, recursive = TRUE, showWarnings = FALSE)
-        file.copy(f_legacy, f)
-        return(readRDS(f))
-      }
-    }
-
     cl <- tryCatch(suppressWarnings(TCGAbiolinks::GDCquery_clinic(project = proj, type = "clinical")),
                    error = function(e) e)
     if (inherits(cl, "error")) {
       message("  [!] clinical pull failed for ", proj, ": ", conditionMessage(cl),
-              " — NOT cached, will retry next run")
+              " - NOT cached, will retry next run")
       return(empty)
     }
 
     if (!any(c(PHARMA, RAD) %in% names(cl))) {
-      message("  [!] ", proj, ": no pharmaceutical or radiation field — all Unknown")
+      message("  [!] ", proj, ": no pharmaceutical or radiation field - all Unknown")
     }
 
     df <- data.frame(
@@ -114,7 +102,7 @@
       rows[[length(rows) + 1]] <- run_all_stats(mt_agg, sc, "RFS", "PanCancer", "Pan-Cancer", sc, "Recurrence_3yr", cfg)
     }
   } else {
-    message("  [!] < 2 cohorts meet the treated floor — skipping batch-corrected aggregate.")
+    message("  [!] < 2 cohorts meet the treated floor - skipping batch-corrected aggregate.")
   }
 
   # ---- FDR (Family x Test grouping) ----
@@ -140,7 +128,7 @@ run_pancan_treated <- function(cfg, pancan_result, out_root = "output") {
   force(out_root)
   stopifnot(!is.null(pancan_result$master), !is.null(pancan_result$stats_df))
 
-  message("\n======== PAN-CANCER SURVIVAL — TREATED (pharmaceutical or radiation) ========")
+  message("\n======== PAN-CANCER SURVIVAL - TREATED (pharmaceutical or radiation) ========")
 
   master     <- pancan_result$master
   score_cols <- grep(paste0(cfg$score_suffix, "$"), colnames(master), value = TRUE)

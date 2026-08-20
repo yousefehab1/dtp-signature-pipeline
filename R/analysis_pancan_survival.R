@@ -23,14 +23,7 @@
 .pancan_read_star_tpm_as_se <- function(query, cfg = NULL) {
   manifest <- as.data.frame(TCGAbiolinks::getResults(query))
   proj     <- manifest$project[1]
-  gdc_base <- if (!is.null(cfg$legacy_gdcdata_dir) && dir.exists(cfg$legacy_gdcdata_dir)) {
-    cfg$legacy_gdcdata_dir
-  } else if (dir.exists("GDCdata")) {
-    "GDCdata"
-  } else {
-    "GDCdata"
-  }
-  gdc_dir <- file.path(gdc_base, proj,
+  gdc_dir <- file.path("GDCdata", proj,
                        "Transcriptome_Profiling",
                        "Gene_Expression_Quantification")
 
@@ -128,7 +121,7 @@
         break
       }
       if (attempt < retries) {
-        message(sprintf("   [retry %d/%d] %s — waiting %ds", attempt, retries, msg, wait_sec))
+        message(sprintf("   [retry %d/%d] %s - waiting %ds", attempt, retries, msg, wait_sec))
         Sys.sleep(wait_sec)
       }
     }
