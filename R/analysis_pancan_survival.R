@@ -102,36 +102,44 @@
   .pancan_read_star_tpm_as_se(query, cfg = cfg)
 }
 
-# Download + prepare one TCGA project with up to 3 retries on transient
-# network/server errors. Cached via cache_rds so it only runs on cache miss.
+# Download + prepare a query with up to 3 retries on transient network/server
+# errors. GDCdownload() always runs first -- GDCprepare() only reads files
+# already on disk, it never fetches them.
+.pancan_gdc_download_and_prepare <- function(cfg, query, retries = 3, wait_sec = 15) {
+  last_err <- NULL
+  for (attempt in seq_len(retries)) {
+    result <- tryCatch({
+      TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 6)
+      .pancan_gdc_prepare_safe(query, cfg = cfg)
+    }, error = function(e) e)
+    if (!inherits(result, "error")) return(result)
+    last_err <- result
+    msg <- if (nzchar(trimws(last_err$message))) last_err$message else class(last_err)[1]
+    # Don't retry non-transient errors (data/parsing failures won't resolve)
+    if (!.pancan_is_transient_gdc_error(last_err)) {
+      message(sprintf("   [!] non-transient error, skipping retries: %s", msg))
+      break
+    }
+    if (attempt < retries) {
+      message(sprintf("   [retry %d/%d] %s - waiting %ds", attempt, retries, msg, wait_sec))
+      Sys.sleep(wait_sec)
+    }
+  }
+  stop(last_err)
+}
+
+# Download + prepare one TCGA project. Cached via cache_rds so it only runs
+# on cache miss.
 .pancan_gdc_with_retry <- function(cfg, query, proj, retries = 3, wait_sec = 15) {
   cache_rds(cfg, paste0("se_", proj), function() {
-    last_err <- NULL
-    for (attempt in seq_len(retries)) {
-      result <- tryCatch({
-        TCGAbiolinks::GDCdownload(query, method = "api", files.per.chunk = 6)
-        .pancan_gdc_prepare_safe(query, cfg = cfg)
-      }, error = function(e) e)
-      if (!inherits(result, "error")) return(result)
-      last_err <- result
-      msg <- if (nzchar(trimws(last_err$message))) last_err$message else class(last_err)[1]
-      # Don't retry non-transient errors (data/parsing failures won't resolve)
-      if (!.pancan_is_transient_gdc_error(last_err)) {
-        message(sprintf("   [!] non-transient error, skipping retries: %s", msg))
-        break
-      }
-      if (attempt < retries) {
-        message(sprintf("   [retry %d/%d] %s - waiting %ds", attempt, retries, msg, wait_sec))
-        Sys.sleep(wait_sec)
-      }
-    }
-    stop(last_err)
+    .pancan_gdc_download_and_prepare(cfg, query, retries = retries, wait_sec = wait_sec)
   })
 }
 
 # Build a TPM matrix for proj by chunking valid_patients into groups of
-# chunk_size, running GDCprepare separately on each, and cbind-ing results.
-# Files are already downloaded; only the in-memory SE construction is chunked.
+# chunk_size, downloading and preparing each chunk separately, and cbind-ing
+# results. Chunking keeps peak memory bounded for large cohorts; each chunk
+# still downloads its own files (GDCprepare() never fetches them on its own).
 .pancan_prep_tpm_chunked <- function(cfg, proj, valid_patients, chunk_size = 300L) {
   chunks <- split(valid_patients, ceiling(seq_along(valid_patients) / chunk_size))
   message(sprintf("   -> %d samples split into %d chunks of ~%d (memory optimisation)",
@@ -144,7 +152,7 @@
                                 data.type     = "Gene Expression Quantification",
                                 workflow.type = "STAR - Counts",
                                 barcode       = bc)
-    se <- .pancan_gdc_prepare_safe(q, cfg = cfg)
+    se <- .pancan_gdc_download_and_prepare(cfg, q)
     m  <- prep_tcga_tpm(cfg, se)
     rm(se); gc()
     m
